@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output of `go build` and `go test`
+*.test
+*.out
+
+# Go module cache
+go.sum
+
+# Temporary and backup files
+*.tmp
+*.swp
+*.bak
+*.old
+*.log
+
+# IDE-specific files
+.vscode/
+.idea/
+*.iml
+
+# Build directories (e.g., created by Air or custom build tools)
+tmp/
+cmd/server/tmp/
+cmd/server/main
+build/
+dist/
+
+# Environment variables and sensitive config files
+.env
+.env.local
+config.json
+config.yaml
+
+# Git merge files
+*.orig
+
+# Debug and log files
+debug/
+*.log
