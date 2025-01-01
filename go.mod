@@ -1,4 +1,4 @@
-module decision_backend
+module github.com/twjsanderson/decision_backend
 
 go 1.21
 
@@ -41,3 +41,5 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/twjsanderson/decision_backend => ./

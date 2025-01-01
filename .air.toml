@@ -5,7 +5,7 @@ testdata_dir = "testdata"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main ./cmd/server"
+  cmd = "go build -o tmp/main cmd/server/main.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
@@ -18,13 +18,6 @@ testdata_dir = "testdata"
   include_file = []
   kill_delay = "0s"
   log = "build-errors.log"
-
-  # Add a pre-build command to ensure the `replace` directive is added in local dev
-  pre_cmd = "sed -i '/replace github.com\\/twjsanderson\\/decision_backend => \\./d' go.mod && echo 'replace github.com/twjsanderson/decision_backend => ./' >> go.mod"
-
-  # Optionally clean up after build for production
-  post_cmd = "sed -i '/replace github.com\\/twjsanderson\\/decision_backend => \\./d' go.mod"
-
   poll = false
   poll_interval = 0
   post_cmd = []

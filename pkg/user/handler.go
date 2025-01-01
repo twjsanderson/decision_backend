@@ -1,10 +1,10 @@
-package handlers
+package user
 
 import (
     "github.com/gin-gonic/gin"
     "net/http"
 
-    "decision_backend/api/models"
+    "github.com/twjsanderson/decision_backend/internal/models"
 )
 
 

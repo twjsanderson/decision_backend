@@ -4,9 +4,8 @@ import (
     "fmt"
     "log"
 
-    "decision_backend/routes"
-	"decision_backend/config"
-	"decision_backend/db"
+    "github.com/twjsanderson/decision_backend/api/routes"
+	"github.com/twjsanderson/decision_backend/internal/config"
 )
 
 func main() {

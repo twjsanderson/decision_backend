@@ -2,7 +2,8 @@ package routes
 
 import (
     "github.com/gin-gonic/gin"
-    "decision_backend/handlers"
+
+    "github.com/twjsanderson/decision_backend/pkg/user"
 )
 
 func SetupRouter() *gin.Engine {
@@ -11,10 +12,10 @@ func SetupRouter() *gin.Engine {
     // User routes
     userRoutes := router.Group("/user")
     {
-        userRoutes.POST("/create", handlers.CreateUser)
-        userRoutes.GET("/get", handlers.GetUser)
-        userRoutes.PUT("/update", handlers.UpdateUser)
-        userRoutes.DELETE("/delete", handlers.DeleteUser)
+        userRoutes.POST("/create", user.CreateUser)
+        userRoutes.GET("/get", user.GetUser)
+        userRoutes.PUT("/update", user.UpdateUser)
+        userRoutes.DELETE("/delete", user.DeleteUser)
     }
 
     // Decision routes
