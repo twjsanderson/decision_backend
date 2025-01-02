@@ -1,6 +1,5 @@
 package models
 
 type Decision struct {
-    title string
+	title string
 }
-

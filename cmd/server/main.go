@@ -1,10 +1,10 @@
 package main
 
 import (
-    "fmt"
-    "log"
+	"fmt"
+	"log"
 
-    "github.com/twjsanderson/decision_backend/api/routes"
+	"github.com/twjsanderson/decision_backend/api/routes"
 	"github.com/twjsanderson/decision_backend/internal/config"
 )
 
@@ -16,7 +16,7 @@ func main() {
 
 	// initialize server routes
 	r := routes.SetupRouter()
-    if err := r.Run(":8080"); err != nil {
-        log.Fatalf("could not start server: %s\n", err)
-    }
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("could not start server: %s\n", err)
+	}
 }

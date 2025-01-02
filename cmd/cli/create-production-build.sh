@@ -3,14 +3,25 @@
 BUILD_OUTPUT="tmp/main"
 MAIN_FILE="cmd/server/main.go"
 
-# Step 1: Remove the 'replace' directive from go.mod
+# Remove the 'replace' directive from go.mod
 sed -i '/replace github.com\/twjsanderson\/decision_backend => \./d' ./go.mod
 
-# Step 2: Tidy up dependencies
+# Tidy up dependencies
 go mod tidy
 
-# Step 3: Build the production binary
+# Clean up tmep files
+go clean
+
+# Format project files
+./format-project.sh
+
+# Run tests
+
+# Build the production binary
 go build -o tmp/main cmd/server/main.go
+
+# for Optimized build
+# GOOS=linux GOARCH=amd64 go build -o tmp/main -ldflags="-s -w" cmd/server/main.go
 
 echo "Production build created at tmp/main"
 

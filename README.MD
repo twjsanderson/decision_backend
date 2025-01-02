@@ -2,7 +2,8 @@
 ## Local Development
 
 1. Create and populate an `.env` file
-2. Ensure that your `go.mod` file includes the `replace github.com/twjsanderson/decision_backend => ./` (this must be included to use imports during local development)
+2. Ensure that your `go.mod` file includes `replace github.com/twjsanderson/decision_backend => ./` (this must be included to use imports during local development)
+3. Run `go mod tidy`
 
 ## Deployment
 

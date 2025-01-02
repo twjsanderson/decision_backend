@@ -1,6 +1,5 @@
 package models
 
 type OpenAI struct {
-    name string
+	name string
 }
-
