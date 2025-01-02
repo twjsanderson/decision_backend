@@ -12,6 +12,7 @@ import (
 func CreateUser(c *gin.Context) {
 	var user models.User
 
+	// Authentication
 	userClaims, err := c.Get("user")
 	if err {
 		fmt.Printf("An error occurred with Clerk Authentication: %v\n", err)
@@ -24,11 +25,13 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	// some error?
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
+	// Success
 	c.JSON(http.StatusCreated, gin.H{"message": "User created", "user": user})
 	return
 }

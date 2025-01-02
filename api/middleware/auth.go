@@ -6,6 +6,7 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2"
 	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 	"github.com/gin-gonic/gin"
+    
 	"github.com/twjsanderson/decision_backend/internal/config"
 )
 
