@@ -32,7 +32,6 @@ dist/
 
 # Environment variables and sensitive config files
 .env
-.env.local
 config.json
 config.yaml
 

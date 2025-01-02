@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/twjsanderson/decision_backend/api/routes"
-	"github.com/twjsanderson/decision_backend/internal/config"
+	// "github.com/twjsanderson/decision_backend/internal/config"
 )
 
 func main() {
 	// load config
-	appConfig := config.LoadConfig()
+	// appConfig := config.LoadConfig()
 
-	fmt.Println("DB URL", appConfig.DatabaseURL)
+	// fmt.Println("DB URL", appConfig.DATABASE)URL)
 
 	// initialize server routes
 	r := routes.SetupRouter()

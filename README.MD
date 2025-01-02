@@ -1,16 +1,16 @@
 
+## Scripts
+Ensure all cli bash scripts are executable
+`chmod +x <path>`
+
 ## Local Development
 
-1. Create and populate an `.env` file
-2. Ensure that your `go.mod` file includes `replace github.com/twjsanderson/decision_backend => ./` (this must be included to use imports during local development)
+1. Add secrets and config data to **.local.env** and change it to **.env**
+2. Run `./cmd/cli/setup-local-mod.sh` to build **go.mod** local development 
 3. Run `go mod tidy`
+4. Run `air` to build binary locally
 
 ## Deployment
-
-Run all commands from project root
-
-#### Ensure script is executable
-`chmod +x cmd/cli/create-production-build.sh`
 
 #### Build & Test Production Binary
 `./cmd/cli/create-production-build.sh`
@@ -21,3 +21,6 @@ Double check that `replace github.com/twjsanderson/decision_backend => ./` has b
 
 
 #### 
+TODO: 
+1. add tests 
+2. add tests script in production build cli

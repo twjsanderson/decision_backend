@@ -7,10 +7,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// AppConfig holds the application's configuration
 type AppConfig struct {
-	DatabaseURL string
-	Environment string
+	DATABASE_URL string
+	ENVIRONMENT string
+	CLERK_API_KEY string
 }
 
 // LoadConfig loads the configuration from environment variables
@@ -22,8 +22,9 @@ func LoadConfig() *AppConfig {
 	}
 
 	return &AppConfig{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://default_url"),
-		Environment: getEnv("ENVIRONMENT", "development"),
+		DATABASE_URL: getEnv("DATABASE_URL", ""),
+		ENVIRONMENT: getEnv("ENVIRONMENT", "development"),
+		CLERK_API_KEY: getEnv("CLERK_API_KEY", ""),
 	}
 }
 
