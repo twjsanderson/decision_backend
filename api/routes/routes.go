@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/twjsanderson/decision_backend/api/middleware"
 	"github.com/twjsanderson/decision_backend/pkg/user"
-    "github.com/twjsanderson/decision_backend/api/middleware"
 )
 
 func SetupRouter() *gin.Engine {

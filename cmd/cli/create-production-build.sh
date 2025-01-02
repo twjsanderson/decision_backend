@@ -12,8 +12,8 @@ go mod tidy
 # Clean up tmep files
 go clean
 
-# Format project files
-./format-project.sh
+# Format code
+./format-code.sh
 
 # Run tests
 

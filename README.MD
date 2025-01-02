@@ -3,6 +3,8 @@
 Ensure all cli bash scripts are executable
 `chmod +x <path>`
 
+To format code base, run `./cmd/cli/format-code.sh`
+
 ## Local Development
 
 1. Add secrets and config data to **.local.env** and change it to **.env**

@@ -8,8 +8,8 @@ import (
 )
 
 type AppConfig struct {
-	DATABASE_URL string
-	ENVIRONMENT string
+	DATABASE_URL  string
+	ENVIRONMENT   string
 	CLERK_API_KEY string
 }
 
@@ -22,8 +22,8 @@ func LoadConfig() *AppConfig {
 	}
 
 	return &AppConfig{
-		DATABASE_URL: getEnv("DATABASE_URL", ""),
-		ENVIRONMENT: getEnv("ENVIRONMENT", "development"),
+		DATABASE_URL:  getEnv("DATABASE_URL", ""),
+		ENVIRONMENT:   getEnv("ENVIRONMENT", "development"),
 		CLERK_API_KEY: getEnv("CLERK_API_KEY", ""),
 	}
 }
