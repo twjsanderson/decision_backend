@@ -1,0 +1,62 @@
+package auth
+
+import (
+	"fmt"
+
+	"github.com/clerk/clerk-sdk-go/v2"
+	"github.com/clerk/clerk-sdk-go/v2/jwt"
+	clerkUser "github.com/clerk/clerk-sdk-go/v2/user"
+	"github.com/gin-gonic/gin"
+
+	"github.com/twjsanderson/decision_backend/internal/config"
+	"github.com/twjsanderson/decision_backend/internal/models"
+)
+
+func ValidateClerkUser(c *gin.Context) (models.User, error) {
+	appConfig := config.LoadConfig()
+	clerk.SetKey(appConfig.CLERK_API_KEY)
+
+	ctx := c.Request.Context()
+	authHeader := c.GetHeader("Authorization")
+
+	var emptyUser models.User
+
+	// Check if the Authorization header is provided
+	if authHeader == "" {
+		return emptyUser, fmt.Errorf("missing Authorization header")
+	}
+
+	// Extract the Bearer token from the Authorization header
+	const bearerPrefix = "Bearer "
+	if len(authHeader) < len(bearerPrefix) || authHeader[:len(bearerPrefix)] != bearerPrefix {
+		return emptyUser, fmt.Errorf("invalid Authorization header format")
+	}
+	bearer := authHeader[len(bearerPrefix):]
+
+	// Verify the jwt
+	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
+		Token: bearer,
+	})
+
+	if err != nil {
+		return emptyUser, fmt.Errorf("failed to validate token")
+	}
+
+	// Retrieve user details from Clerk using the subject (user ID) in claims
+	userDetails, err := clerkUser.Get(ctx, claims.Subject)
+	if err != nil {
+		return emptyUser, fmt.Errorf("failed to fetch user details: %w", err)
+	}
+
+	email := ""
+	if len(userDetails.EmailAddresses) > 0 {
+		email = userDetails.EmailAddresses[0].EmailAddress
+	}
+
+	return models.User{
+			Id:        userDetails.ID,
+			Email:     email,
+			FirstName: userDetails.FirstName,
+			LastName:  userDetails.LastName},
+		nil
+}

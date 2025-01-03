@@ -2,8 +2,6 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-
-	"github.com/twjsanderson/decision_backend/api/middleware"
 	"github.com/twjsanderson/decision_backend/pkg/user"
 )
 
@@ -11,7 +9,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	// User routes
-	userRoutes := router.Group("/user", middleware.AuthMiddleware())
+	userRoutes := router.Group("/user")
 	{
 		userRoutes.POST("/create", user.CreateUser)
 		userRoutes.GET("/get", user.GetUser)

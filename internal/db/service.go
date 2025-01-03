@@ -2,26 +2,48 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/twjsanderson/decision_backend/internal/config"
 )
 
-var Pool *pgxpool.Pool
+var DB *pgxpool.Pool
 
-// ConnectDB initializes the connection pool to the database
-func ConnectDB(databaseURL string) {
-	var err error
-	Pool, err = pgxpool.New(context.Background(), databaseURL)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+// InitializeDB initializes a connection pool to the PostgreSQL database
+func InitializeDB() error {
+	appConfig := config.LoadConfig()
+	dbURL := appConfig.DATABASE_URL
+	if dbURL == "" {
+		return fmt.Errorf("DATABASE_URL is not set")
 	}
-	log.Println("Connected to the database")
+
+	// Configure the connection pool
+	config, err := pgxpool.ParseConfig(dbURL)
+	if err != nil {
+		return fmt.Errorf("unable to parse database URL: %w", err)
+	}
+
+	// Create a new connection pool
+	DB, err = pgxpool.ConnectConfig(context.Background(), config)
+	if err != nil {
+		return fmt.Errorf("unable to connect to the database: %w", err)
+	}
+
+	// Test the connection
+	if err := DB.Ping(context.Background()); err != nil {
+		return fmt.Errorf("database connection test failed: %w", err)
+	}
+
+	log.Println("Connected to the database successfully")
+	return nil
 }
 
 // CloseDB closes the database connection pool
 func CloseDB() {
-	if Pool != nil {
-		Pool.Close()
+	if DB != nil {
+		DB.Close()
+		log.Println("Database connection closed")
 	}
 }
