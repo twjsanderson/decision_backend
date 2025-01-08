@@ -22,6 +22,22 @@ func ValidateRequest(c *gin.Context) (*models.User, error) {
 		return nil, fmt.Errorf("missing or empty id field")
 	}
 
+	// Get the route path from the context
+	routePath := c.FullPath() // e.g., "/user/create"
+
+	if routePath == "/user/create" {
+		if requestBody.Email == "" ||
+			requestBody.FirstName == nil ||
+			*requestBody.FirstName == "" ||
+			requestBody.LastName == nil ||
+			*requestBody.LastName == "" {
+			return nil, fmt.Errorf("missing or empty required field(s)")
+		}
+		if requestBody.IsAdmin {
+			return nil, fmt.Errorf("unauthorized field isAdmin found")
+		}
+	}
+
 	// Return the valid request
 	return &requestBody, nil
 }
@@ -41,13 +57,6 @@ func CreateUser(c *gin.Context) {
 	}
 
 	status, err := CreateUserService(&clerkUser, validatedRequestBody)
-
-	// Debugging: Print response and error to console
-	fmt.Printf("status: %+v\n", status) // Pretty-print the response object
-	if err != nil {
-		fmt.Printf("Error: %v\n", err) // Print error if it exists
-	}
-
 	if err != nil {
 		c.JSON(status, gin.H{"error": err.Error()})
 		return
@@ -72,13 +81,6 @@ func GetUser(c *gin.Context) {
 	}
 
 	dbUser, dbStatus, dbErr := GetUserService(&clerkUser, validatedRequestBody)
-
-	// Debugging: Print response and error to console
-	fmt.Printf("Response: %+v\n", dbUser) // Pretty-print the response object
-	if dbErr != nil {
-		fmt.Printf("Error: %v\n", dbErr) // Print error if it exists
-	}
-
 	if dbErr != nil {
 		c.JSON(dbStatus, gin.H{"error": dbErr.Error()})
 		return

@@ -68,7 +68,7 @@ func AuthorizeUserOperation(
 	operation string,
 ) bool {
 	if operation == "CREATE" || operation == "DELETE" {
-		if clerkUser.Id == requestBody.Id {
+		if clerkUser.Id == requestBody.Id && clerkUser.Email == requestBody.Email {
 			return true
 		}
 	}

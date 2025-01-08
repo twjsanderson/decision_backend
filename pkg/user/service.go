@@ -16,16 +16,13 @@ func AuthorizeUserService(
 	// Fetch user from DB
 	dbUser, httpStatus, dbErr := GetUserById(&clerkUser.Id)
 	if dbErr != nil && operation != "CREATE" {
-		fmt.Print(operation, "CREATE")
 		return httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
-
 	// Check authorization
 	authorized := auth.AuthorizeUserOperation(clerkUser, &dbUser, requestBody, operation)
 	if !authorized {
 		return http.StatusUnauthorized, fmt.Errorf("user is not authorized for %v operation", operation)
 	}
-
 	// Success
 	return http.StatusOK, nil
 }
@@ -38,18 +35,26 @@ func CreateUserService(
 	if authErr != nil {
 		return authStatus, authErr
 	}
+
 	_, dbStatus, dbErr := GetUserById(&clerkUser.Id)
 	if dbErr != nil && dbStatus != http.StatusNotFound {
 		return dbStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
-	if dbStatus == http.StatusNotFound {
-		insertionStatus, insertionErr := InsertUser(requestBody)
-		if insertionErr != nil {
-			return insertionStatus, insertionErr
-		}
-		return insertionStatus, nil
+
+	if dbStatus != http.StatusNotFound {
+		return http.StatusConflict, fmt.Errorf("user already exists")
 	}
-	return dbStatus, fmt.Errorf("user already exists")
+
+	// Ensure IsAdmin is false for the new user
+	requestBody.IsAdmin = false
+
+	// Insert the new user
+	insertionStatus, insertionErr := InsertUser(requestBody)
+	if insertionErr != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to insert user - %v", insertionErr)
+	}
+
+	return insertionStatus, nil
 }
 
 func GetUserService(
