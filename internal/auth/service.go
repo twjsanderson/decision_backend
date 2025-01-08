@@ -12,14 +12,14 @@ import (
 	"github.com/twjsanderson/decision_backend/internal/models"
 )
 
-func ValidateClerkUser(c *gin.Context) (models.User, error) {
+func AuthenticateClerkUser(c *gin.Context) (models.ClerkUser, error) {
 	appConfig := config.LoadConfig()
 	clerk.SetKey(appConfig.CLERK_API_KEY)
 
 	ctx := c.Request.Context()
 	authHeader := c.GetHeader("Authorization")
 
-	var emptyUser models.User
+	var emptyUser models.ClerkUser
 
 	// Check if the Authorization header is provided
 	if authHeader == "" {
@@ -53,10 +53,39 @@ func ValidateClerkUser(c *gin.Context) (models.User, error) {
 		email = userDetails.EmailAddresses[0].EmailAddress
 	}
 
-	return models.User{
+	return models.ClerkUser{
 			Id:        userDetails.ID,
 			Email:     email,
 			FirstName: userDetails.FirstName,
 			LastName:  userDetails.LastName},
 		nil
+}
+
+func AuthorizeUserOperation(
+	clerkUser *models.ClerkUser,
+	dbUser *models.User,
+	requestBody *models.User,
+	operation string,
+) bool {
+	if operation == "CREATE" || operation == "DELETE" {
+		if clerkUser.Id == requestBody.Id {
+			return true
+		}
+	}
+	if operation == "GET" {
+		if dbUser.IsAdmin || dbUser.Id == requestBody.Id {
+			return true
+		}
+	}
+	if operation == "UPDATE" {
+		if dbUser.IsAdmin {
+			// specific fields only!
+			return true
+		}
+		if dbUser.Id == requestBody.Id {
+			// specific fields only!
+			return true
+		}
+	}
+	return false
 }

@@ -26,3 +26,4 @@ Double check that `replace github.com/twjsanderson/decision_backend => ./` has b
 TODO: 
 1. add tests 
 2. add tests script in production build cli
+3. consider better req body validation

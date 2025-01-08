@@ -1,31 +1,85 @@
 package user
 
 import (
-	"errors"
+	"fmt"
+	"net/http"
 
+	"github.com/twjsanderson/decision_backend/internal/auth"
 	"github.com/twjsanderson/decision_backend/internal/models"
 )
 
-func CreateUserService(user *models.User) (*models.User, error) {
-	// Business logic to create the user (e.g., interacting with DB)
-	// For example, you might want to validate the user data, hash a password, etc.
-
-	if user.Id == "" {
-		return user, errors.New("User id is required")
+func AuthorizeUserService(
+	clerkUser *models.ClerkUser,
+	requestBody *models.User,
+	operation string,
+) (int, error) {
+	// Fetch user from DB
+	dbUser, httpStatus, dbErr := GetUserById(&clerkUser.Id)
+	if dbErr != nil && operation != "CREATE" {
+		fmt.Print(operation, "CREATE")
+		return httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
 
-	// Here you would typically interact with the database to save the user
-	// For now, we'll just simulate a successful creation.
+	// Check authorization
+	authorized := auth.AuthorizeUserOperation(clerkUser, &dbUser, requestBody, operation)
+	if !authorized {
+		return http.StatusUnauthorized, fmt.Errorf("user is not authorized for %v operation", operation)
+	}
 
-	// Simulate user being created
-	// user.ID = someGeneratedID
-
-	/// Returning nil indicates no error, meaning the user was successfully created.
-	return user, nil
+	// Success
+	return http.StatusOK, nil
 }
 
-func GetUserService(id int) (models.User, error) {
-	var user models.User
+func CreateUserService(
+	clerkUser *models.ClerkUser,
+	requestBody *models.User,
+) (int, error) {
+	authStatus, authErr := AuthorizeUserService(clerkUser, requestBody, "CREATE")
+	if authErr != nil {
+		return authStatus, authErr
+	}
+	_, dbStatus, dbErr := GetUserById(&clerkUser.Id)
+	if dbErr != nil && dbStatus != http.StatusNotFound {
+		return dbStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
+	}
+	if dbStatus == http.StatusNotFound {
+		insertionStatus, insertionErr := InsertUser(requestBody)
+		if insertionErr != nil {
+			return insertionStatus, insertionErr
+		}
+		return insertionStatus, nil
+	}
+	return dbStatus, fmt.Errorf("user already exists")
+}
 
-	return user, nil
+func GetUserService(
+	clerkUser *models.ClerkUser,
+	requestBody *models.User,
+) (models.User, int, error) {
+	var user models.User
+	authStatus, authErr := AuthorizeUserService(clerkUser, requestBody, "GET")
+	if authErr != nil {
+		return user, authStatus, authErr
+	}
+	// Fetch user from DB
+	dbUser, httpStatus, dbErr := GetUserById(&clerkUser.Id)
+	if dbErr != nil && httpStatus != http.StatusNotFound {
+		return user, httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
+	}
+	return dbUser, httpStatus, dbErr
+}
+
+func DeleteUserService(
+	clerkUser *models.ClerkUser,
+	requestBody *models.User,
+) (int, error) {
+	response, err := AuthorizeUserService(clerkUser, requestBody, "DELETE")
+	if err != nil {
+		return response, err
+	}
+	_, deletionErr := DeleteUserById(&requestBody.Id)
+	if deletionErr != nil {
+		return response, deletionErr
+	}
+	return response, nil
 }
