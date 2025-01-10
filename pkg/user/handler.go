@@ -95,8 +95,26 @@ func GetAllUsers(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	// Your logic for updating a user
-	c.JSON(http.StatusOK, gin.H{"message": "User updated"})
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
+
+	dbUser, dbStatus, dbErr := UpdateUserService(&clerkUser, validatedRequestBody)
+	if dbErr != nil {
+		c.JSON(dbStatus, gin.H{"error": dbErr.Error()})
+		return
+	}
+
+	c.JSON(dbStatus, gin.H{"user": dbUser})
 }
 
 func DeleteUser(c *gin.Context) {

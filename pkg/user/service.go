@@ -88,3 +88,21 @@ func DeleteUserService(
 	}
 	return response, nil
 }
+
+func UpdateUserService(
+	clerkUser *models.ClerkUser,
+	requestBody *models.User,
+) (models.User, int, error) {
+	var user models.User
+
+	authStatus, authErr := AuthorizeUserService(clerkUser, requestBody, "CREATE")
+	if authErr != nil {
+		return user, authStatus, authErr
+	}
+	// Update user
+	updatedUser, updateStatus, updateErr := UpdateUserData(requestBody)
+	if updateErr != nil {
+		return user, updateStatus, fmt.Errorf("failed to insert user - %v", updateErr)
+	}
+	return updatedUser, updateStatus, updateErr
+}

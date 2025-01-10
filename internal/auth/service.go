@@ -78,12 +78,9 @@ func AuthorizeUserOperation(
 		}
 	}
 	if operation == "UPDATE" {
-		if dbUser.IsAdmin {
-			// specific fields only!
-			return true
-		}
-		if dbUser.Id == requestBody.Id {
-			// specific fields only!
+		if dbUser.IsAdmin ||
+			clerkUser.Id == requestBody.Id &&
+				clerkUser.Email == requestBody.Email {
 			return true
 		}
 	}
