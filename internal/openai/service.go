@@ -16,14 +16,13 @@ func NewOpenAIService(apiKey string) *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
-func (s *OpenAIService) GetChatGPTResponse(prompt string) (string, error) {
-	// Prepare the request
+func (s *OpenAIService) GetChatGPTResponse(prompt string, ctx string) (string, error) {
 	req := openai.ChatCompletionRequest{
-		Model: openai.GPT4, // Use GPT-4 (or "gpt-3.5-turbo" for a cheaper option)
+		Model: openai.GPT4,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: "You are a helpful assistant.",
+				Content: ctx,
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
@@ -32,7 +31,6 @@ func (s *OpenAIService) GetChatGPTResponse(prompt string) (string, error) {
 		},
 	}
 
-	// Call OpenAI API
 	resp, err := s.client.CreateChatCompletion(context.Background(), req)
 	if err != nil {
 		return "", fmt.Errorf("failed to get response from OpenAI: %v", err)
@@ -44,4 +42,15 @@ func (s *OpenAIService) GetChatGPTResponse(prompt string) (string, error) {
 	}
 
 	return "", fmt.Errorf("no response from OpenAI")
+}
+
+func GetChatGPTResponse(apiKey string, prompt string, ctx string) (string, error) {
+	openAIService := NewOpenAIService(apiKey)
+
+	response, err := openAIService.GetChatGPTResponse(prompt, ctx)
+	if err != nil {
+		return "", fmt.Errorf("error while getting response: %v", err)
+	}
+
+	return response, nil
 }

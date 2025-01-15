@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/twjsanderson/decision_backend/pkg/decision"
 	"github.com/twjsanderson/decision_backend/pkg/user"
 )
 
@@ -18,13 +19,13 @@ func SetupRouter() *gin.Engine {
 	}
 
 	// Decision routes
-	// decisionRoutes := router.Group("/decision")
-	// {
-	//     decisionRoutes.POST("/create", handlers.CreateDecision)
-	//     decisionRoutes.GET("/get", handlers.GetDecision)
-	//     decisionRoutes.PUT("/update", handlers.UpdateDecision)
-	//     decisionRoutes.DELETE("/delete", handlers.DeleteDecision)
-	// }
+	decisionRoutes := router.Group("/decision")
+	{
+		decisionRoutes.POST("/create-opinions", decision.CreateOpinions)
+		decisionRoutes.GET("/get", decision.GetDecision)
+		// decisionRoutes.PUT("/update", handlers.UpdateDecision)
+		// decisionRoutes.DELETE("/delete", handlers.DeleteDecision)
+	}
 
 	// Payment routes
 	// paymentRoutes := router.Group("/payment")

@@ -1,11 +1,62 @@
-package handlers
+package decision
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/twjsanderson/decision_backend/internal/auth"
+	"github.com/twjsanderson/decision_backend/internal/models"
 )
 
-func CreateDecision(c *gin.Context) {
+func ValidateRequest(c *gin.Context) (*models.Decision, error) {
+	// Validate the JSON format
+	var requestBody models.Decision
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		return nil, fmt.Errorf("invalid request body format")
+	}
+
+	// Validate required field(s)
+	if requestBody.Id == "" {
+		return nil, fmt.Errorf("missing or empty id field")
+	}
+
+	// Get the route path from the context
+	routePath := c.FullPath()
+
+	if routePath == "/decision/create-opinions" {
+		if requestBody.Title == "" ||
+			requestBody.ChoiceType == "" ||
+			requestBody.Problem == "" ||
+			requestBody.IdealOutcome == "" ||
+			requestBody.MaxCost == "" ||
+			requestBody.RiskTolerance == "" ||
+			requestBody.Timeline == "" {
+			return nil, fmt.Errorf("missing or empty required field(s)")
+		}
+		if requestBody.IsAdmin {
+			return nil, fmt.Errorf("unauthorized field isAdmin found")
+		}
+	}
+
+	// Return the valid request
+	return &requestBody, nil
+}
+
+func CreateOpinions(c *gin.Context) {
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
 	// Your logic for creating a decision
 	c.JSON(http.StatusCreated, gin.H{"message": "Decision created"})
 }
@@ -15,12 +66,12 @@ func GetDecision(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Decision fetched"})
 }
 
-func UpdateDecision(c *gin.Context) {
-	// Your logic for updating a decision
-	c.JSON(http.StatusOK, gin.H{"message": "Decision updated"})
-}
+// func UpdateDecision(c *gin.Context) {
+// 	// Your logic for updating a decision
+// 	c.JSON(http.StatusOK, gin.H{"message": "Decision updated"})
+// }
 
-func DeleteDecision(c *gin.Context) {
-	// Your logic for deleting a decision
-	c.JSON(http.StatusOK, gin.H{"message": "Decision deleted"})
-}
+// func DeleteDecision(c *gin.Context) {
+// 	// Your logic for deleting a decision
+// 	c.JSON(http.StatusOK, gin.H{"message": "Decision deleted"})
+// }
