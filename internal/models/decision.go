@@ -2,7 +2,7 @@ package models
 
 type Decision struct {
 	User
-	Title         string `json:"id"`
+	Title         string `json:"title"`
 	ChoiceType    string `json:"choice_type"`
 	Problem       string `json:"problem"`
 	Justification string `json:"justification"`

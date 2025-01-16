@@ -25,7 +25,7 @@ func ValidateRequest(c *gin.Context) (*models.Decision, error) {
 	// Get the route path from the context
 	routePath := c.FullPath()
 
-	if routePath == "/decision/create-opinions" {
+	if routePath == "/decision/create/initial" {
 		if requestBody.Title == "" ||
 			requestBody.ChoiceType == "" ||
 			requestBody.Problem == "" ||
@@ -35,16 +35,13 @@ func ValidateRequest(c *gin.Context) (*models.Decision, error) {
 			requestBody.Timeline == "" {
 			return nil, fmt.Errorf("missing or empty required field(s)")
 		}
-		if requestBody.IsAdmin {
-			return nil, fmt.Errorf("unauthorized field isAdmin found")
-		}
 	}
 
 	// Return the valid request
 	return &requestBody, nil
 }
 
-func CreateOpinions(c *gin.Context) {
+func CreateDecision(c *gin.Context) {
 	// Authenticate
 	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
 	if authenticatedErr != nil {
@@ -57,8 +54,39 @@ func CreateOpinions(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
 		return
 	}
-	// Your logic for creating a decision
-	c.JSON(http.StatusCreated, gin.H{"message": "Decision created"})
+
+	decision, status, err := CreateDecisionService(&clerkUser, validatedRequestBody)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Success
+	c.JSON(status, gin.H{"data": decision, "message": "initial decision created"})
+}
+
+func CompleteDecision(c *gin.Context) {
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
+
+	status, err := CompleteDecisionService(&clerkUser, validatedRequestBody)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Success
+	c.JSON(status, gin.H{"message": "opinions created"})
 }
 
 func GetDecision(c *gin.Context) {

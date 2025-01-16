@@ -21,7 +21,8 @@ func SetupRouter() *gin.Engine {
 	// Decision routes
 	decisionRoutes := router.Group("/decision")
 	{
-		decisionRoutes.POST("/create-opinions", decision.CreateOpinions)
+		decisionRoutes.POST("/create", decision.CreateDecision)
+		decisionRoutes.POST("/complete", decision.CompleteDecision)
 		decisionRoutes.GET("/get", decision.GetDecision)
 		// decisionRoutes.PUT("/update", handlers.UpdateDecision)
 		// decisionRoutes.DELETE("/delete", handlers.DeleteDecision)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/twjsanderson/decision_backend/internal/models"
 )
 
 type OpenAIService struct {
@@ -53,4 +54,11 @@ func GetChatGPTResponse(apiKey string, prompt string, ctx string) (string, error
 	}
 
 	return response, nil
+}
+
+func GetInitialDecision(data models.Decision) int {
+	// add data to prompt
+	// build context string from prompt
+	// use GetChatGPTResponse()
+	return -1
 }

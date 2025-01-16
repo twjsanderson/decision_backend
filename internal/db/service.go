@@ -51,10 +51,26 @@ func SetupDB() error {
 			TableName:  "Users",
 			PrimaryKey: "id",
 			Columns: map[string]string{
-				"id":         "TEXT",
+				"id":         "TEXT PRIMARY KEY",
 				"email":      "TEXT",
 				"first_name": "TEXT",
 				"last_name":  "TEXT",
+			},
+		},
+		{
+			TableName:  "Decisions",
+			PrimaryKey: "id",
+			Columns: map[string]string{
+				"id":             "TEXT PRIMARY KEY",
+				"user_id":        "TEXT REFERENCES Users(id)", // Add foreign key reference here
+				"title":          "TEXT",
+				"choice_type":    "TEXT",
+				"problem":        "TEXT",
+				"justification":  "TEXT",
+				"ideal_outcome":  "TEXT",
+				"max_cost":       "TEXT",
+				"risk_tolerance": "TEXT",
+				"timeline":       "TEXT",
 			},
 		},
 	}
@@ -77,10 +93,6 @@ func CreateTable(tableName string, columns map[string]string) error {
 	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", tableName)
 
 	for colName, colType := range columns {
-		// Check if this column is marked as PRIMARY KEY
-		if colType == "PRIMARY KEY" {
-			query += fmt.Sprintf("%s TEXT %s, ", colName, colType)
-		}
 		query += fmt.Sprintf("%s %s, ", colName, colType)
 	}
 
