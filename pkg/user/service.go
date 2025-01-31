@@ -4,9 +4,33 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/twjsanderson/decision_backend/internal/auth"
 	"github.com/twjsanderson/decision_backend/internal/models"
+	"github.com/twjsanderson/decision_backend/pkg/permissions"
 )
+
+func AuthorizeUserOperation(
+	clerkUser *models.ClerkUser,
+	dbUser *models.User,
+	requestBody *models.User,
+	operation string,
+) bool {
+	if operation == "CREATE" || operation == "DELETE" {
+		if clerkUser.Id == requestBody.Id {
+			return true
+		}
+	}
+	if operation == "GET" {
+		if dbUser.IsAdmin || dbUser.Id == requestBody.Id {
+			return true
+		}
+	}
+	if operation == "UPDATE" {
+		if dbUser.IsAdmin || clerkUser.Id == requestBody.Id { // should just be IsAdmin in Prod
+			return true
+		}
+	}
+	return false
+}
 
 func AuthorizeUserService(
 	clerkUser *models.ClerkUser,
@@ -19,7 +43,7 @@ func AuthorizeUserService(
 		return httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
 	// Check authorization
-	authorized := auth.AuthorizeUserOperation(clerkUser, &dbUser, requestBody, operation)
+	authorized := AuthorizeUserOperation(clerkUser, &dbUser, requestBody, operation)
 	if !authorized {
 		return http.StatusUnauthorized, fmt.Errorf("user is not authorized for %v operation", operation)
 	}
@@ -54,6 +78,18 @@ func CreateUserService(
 		return http.StatusInternalServerError, fmt.Errorf("failed to insert user - %v", insertionErr)
 	}
 
+	var defaultPermissions models.UserPermissions = models.UserPermissions{
+		UserId: clerkUser.Id,
+		Max:    3,
+	}
+
+	// Insert default permissions for new user
+	_, permissionsStatus, permissionsErr := permissions.InsertUserPermissions(defaultPermissions)
+	if permissionsErr != nil {
+		return permissionsStatus, permissionsErr
+	}
+
+	// Success
 	return insertionStatus, nil
 }
 
@@ -71,7 +107,7 @@ func GetUserService(
 	if dbErr != nil && httpStatus != http.StatusNotFound {
 		return user, httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
-	return dbUser, httpStatus, dbErr
+	return dbUser, http.StatusOK, dbErr
 }
 
 func DeleteUserService(
@@ -81,6 +117,10 @@ func DeleteUserService(
 	response, err := AuthorizeUserService(clerkUser, requestBody, "DELETE")
 	if err != nil {
 		return response, err
+	}
+	_, permissionsDeletionErr := permissions.DeletePermissionsById(&requestBody.Id)
+	if permissionsDeletionErr != nil {
+		return response, permissionsDeletionErr
 	}
 	_, deletionErr := DeleteUserById(&requestBody.Id)
 	if deletionErr != nil {
@@ -95,7 +135,7 @@ func UpdateUserService(
 ) (models.User, int, error) {
 	var user models.User
 
-	authStatus, authErr := AuthorizeUserService(clerkUser, requestBody, "CREATE")
+	authStatus, authErr := AuthorizeUserService(clerkUser, requestBody, "UPDATE")
 	if authErr != nil {
 		return user, authStatus, authErr
 	}

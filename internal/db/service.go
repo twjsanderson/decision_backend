@@ -37,9 +37,9 @@ func InitializeDB() error {
 		return fmt.Errorf("database connection test failed: %w", err)
 	}
 
-	if err := SetupDB(); err != nil {
-		return fmt.Errorf("database tables creation failed: %w", err)
-	}
+	// if err := SetupDB(); err != nil {
+	// 	return fmt.Errorf("database tables creation failed: %w", err)
+	// }
 
 	log.Println("Connected to the database successfully")
 	return nil
@@ -61,16 +61,10 @@ func SetupDB() error {
 			TableName:  "Decisions",
 			PrimaryKey: "id",
 			Columns: map[string]string{
-				"id":             "TEXT PRIMARY KEY",
-				"user_id":        "TEXT REFERENCES Users(id)", // Add foreign key reference here
-				"title":          "TEXT",
-				"choice_type":    "TEXT",
-				"problem":        "TEXT",
-				"justification":  "TEXT",
-				"ideal_outcome":  "TEXT",
-				"max_cost":       "TEXT",
-				"risk_tolerance": "TEXT",
-				"timeline":       "TEXT",
+				"id":          "TEXT PRIMARY KEY",
+				"user_id":     "TEXT REFERENCES Users(id)", // Add foreign key reference here
+				"title":       "TEXT",
+				"choice_type": "TEXT",
 			},
 		},
 	}

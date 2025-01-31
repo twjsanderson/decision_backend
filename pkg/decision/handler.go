@@ -11,28 +11,32 @@ import (
 )
 
 func ValidateRequest(c *gin.Context) (*models.Decision, error) {
-	// Validate the JSON format
 	var requestBody models.Decision
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		return nil, fmt.Errorf("invalid request body format")
-	}
-
-	// Validate required field(s)
-	if requestBody.Id == "" {
-		return nil, fmt.Errorf("missing or empty id field")
-	}
 
 	// Get the route path from the context
 	routePath := c.FullPath()
 
-	if routePath == "/decision/create/initial" {
-		if requestBody.Title == "" ||
-			requestBody.ChoiceType == "" ||
-			requestBody.Problem == "" ||
-			requestBody.IdealOutcome == "" ||
-			requestBody.MaxCost == "" ||
-			requestBody.RiskTolerance == "" ||
-			requestBody.Timeline == "" {
+	// get user_id (as id) from params
+	userId := c.Query("id")
+	if userId == "" {
+		return nil, fmt.Errorf("missing or empty required field(s)")
+	}
+	requestBody.Id = userId // assign userId from params to requestBody
+
+	// Validate the JSON format for all req. except GET
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		return nil, fmt.Errorf("invalid request body format")
+	}
+
+	if routePath == "/decision/create" {
+		if requestBody.Id == "" ||
+			requestBody.Title == "" ||
+			requestBody.Problem == "" {
+			// requestBody.ChoiceType == "" ||
+			// requestBody.IdealOutcome == "" ||
+			// requestBody.MaxCost == "" ||
+			// requestBody.RiskTolerance == "" ||
+			// requestBody.Timeline == "" {
 			return nil, fmt.Errorf("missing or empty required field(s)")
 		}
 	}
@@ -90,14 +94,32 @@ func CompleteDecision(c *gin.Context) {
 }
 
 func GetDecision(c *gin.Context) {
-	// Your logic for getting a decision
-	c.JSON(http.StatusOK, gin.H{"message": "Decision fetched"})
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
+
+	dbDecision, dbStatus, dbErr := GetDecisionService(&clerkUser, validatedRequestBody)
+	if dbErr != nil {
+		c.JSON(dbStatus, gin.H{"error": dbErr.Error()})
+		return
+	}
+
+	c.JSON(dbStatus, gin.H{"data": dbDecision})
 }
 
-// func UpdateDecision(c *gin.Context) {
-// 	// Your logic for updating a decision
-// 	c.JSON(http.StatusOK, gin.H{"message": "Decision updated"})
-// }
+func UpdateDecision(c *gin.Context) {
+	// Your logic for updating a decision
+	c.JSON(http.StatusOK, gin.H{"message": "Decision updated"})
+}
 
 // func DeleteDecision(c *gin.Context) {
 // 	// Your logic for deleting a decision

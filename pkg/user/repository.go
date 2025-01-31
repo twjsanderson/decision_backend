@@ -83,6 +83,12 @@ func UpdateUserData(user *models.User) (models.User, int, error) {
 		return models.User{}, http.StatusInternalServerError, fmt.Errorf("failed to fetch user before update - %v", err)
 	}
 
+	// Convert empty email string to nil (NULL in SQL) to prevent overwriting
+	var email *string
+	if user.Email != "" {
+		email = &user.Email
+	}
+
 	// Update only the fields that are not nil
 	queryUpdate := `
 		UPDATE users 
@@ -92,7 +98,7 @@ func UpdateUserData(user *models.User) (models.User, int, error) {
 			is_admin = COALESCE($4, is_admin)
 		WHERE id = $5
 	`
-	_, err = db.DB.Exec(context.Background(), queryUpdate, user.Email, user.FirstName, user.LastName, user.IsAdmin, user.Id)
+	_, err = db.DB.Exec(context.Background(), queryUpdate, email, user.FirstName, user.LastName, user.IsAdmin, user.Id)
 	if err != nil {
 		return models.User{}, http.StatusInternalServerError, fmt.Errorf("failed to update user with id %s - %v", user.Id, err)
 	}

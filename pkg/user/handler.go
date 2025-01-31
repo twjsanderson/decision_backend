@@ -11,21 +11,29 @@ import (
 )
 
 func ValidateRequest(c *gin.Context) (*models.User, error) {
-	// Validate the JSON format
 	var requestBody models.User
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		return nil, fmt.Errorf("invalid request body format")
-	}
-
-	// Validate required field(s)
-	if requestBody.Id == "" {
-		return nil, fmt.Errorf("missing or empty id field")
-	}
 
 	// Get the route path from the context
-	routePath := c.FullPath() // e.g., "/user/create"
+	routePath := c.FullPath()
+
+	// get user_id (as id) from params
+	userId := c.Query("id")
+	if userId == "" {
+		return nil, fmt.Errorf("missing user id")
+	}
+	requestBody.Id = userId // assign userId from params to requestBody
+
+	if routePath != "/user/get" && routePath != "/user/delete" {
+		// Validate the JSON format for all req. except GET & DELETE
+		if err := c.ShouldBindJSON(&requestBody); err != nil {
+			return nil, fmt.Errorf("invalid request body format")
+		}
+	}
 
 	if routePath == "/user/create" {
+		if requestBody.Id == "" {
+			return nil, fmt.Errorf("missing or empty required field(s)")
+		}
 		if requestBody.Email == "" ||
 			requestBody.FirstName == nil ||
 			*requestBody.FirstName == "" ||
@@ -49,13 +57,13 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
 		return
 	}
+
 	// Validate Request Body
 	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
 	if validatedRequestErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
 		return
 	}
-
 	status, err := CreateUserService(&clerkUser, validatedRequestBody)
 	if err != nil {
 		c.JSON(status, gin.H{"error": err.Error()})
@@ -87,7 +95,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	// Success
-	c.JSON(dbStatus, gin.H{"user": dbUser})
+	c.JSON(dbStatus, gin.H{"data": dbUser})
 }
 
 func GetAllUsers(c *gin.Context) {
@@ -114,7 +122,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(dbStatus, gin.H{"user": dbUser})
+	c.JSON(dbStatus, gin.H{"data": dbUser})
 }
 
 func DeleteUser(c *gin.Context) {

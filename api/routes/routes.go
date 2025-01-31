@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/twjsanderson/decision_backend/pkg/decision"
 	"github.com/twjsanderson/decision_backend/pkg/user"
@@ -8,6 +9,14 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
+
+	// Add CORS middleware before defining routes
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"}, // The frontend URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// User routes
 	userRoutes := router.Group("/user")
@@ -24,7 +33,7 @@ func SetupRouter() *gin.Engine {
 		decisionRoutes.POST("/create", decision.CreateDecision)
 		decisionRoutes.POST("/complete", decision.CompleteDecision)
 		decisionRoutes.GET("/get", decision.GetDecision)
-		// decisionRoutes.PUT("/update", handlers.UpdateDecision)
+		decisionRoutes.PUT("/update", decision.UpdateDecision)
 		// decisionRoutes.DELETE("/delete", handlers.DeleteDecision)
 	}
 

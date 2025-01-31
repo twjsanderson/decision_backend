@@ -32,7 +32,6 @@ func AuthenticateClerkUser(c *gin.Context) (models.ClerkUser, error) {
 		return emptyUser, fmt.Errorf("invalid Authorization header format")
 	}
 	bearer := authHeader[len(bearerPrefix):]
-
 	// Verify the jwt
 	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
 		Token: bearer,
@@ -59,30 +58,4 @@ func AuthenticateClerkUser(c *gin.Context) (models.ClerkUser, error) {
 			FirstName: userDetails.FirstName,
 			LastName:  userDetails.LastName},
 		nil
-}
-
-func AuthorizeUserOperation(
-	clerkUser *models.ClerkUser,
-	dbUser *models.User,
-	requestBody *models.User,
-	operation string,
-) bool {
-	if operation == "CREATE" || operation == "DELETE" {
-		if clerkUser.Id == requestBody.Id && clerkUser.Email == requestBody.Email {
-			return true
-		}
-	}
-	if operation == "GET" {
-		if dbUser.IsAdmin || dbUser.Id == requestBody.Id {
-			return true
-		}
-	}
-	if operation == "UPDATE" {
-		if dbUser.IsAdmin ||
-			clerkUser.Id == requestBody.Id &&
-				clerkUser.Email == requestBody.Email {
-			return true
-		}
-	}
-	return false
 }
