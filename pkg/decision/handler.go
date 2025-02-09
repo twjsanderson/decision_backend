@@ -32,14 +32,11 @@ func ValidateRequest(c *gin.Context) (*models.Decision, error) {
 		if requestBody.Id == "" ||
 			requestBody.Title == "" ||
 			requestBody.Problem == "" {
-			// requestBody.ChoiceType == "" ||
-			// requestBody.IdealOutcome == "" ||
-			// requestBody.MaxCost == "" ||
-			// requestBody.RiskTolerance == "" ||
-			// requestBody.Timeline == "" {
 			return nil, fmt.Errorf("missing or empty required field(s)")
 		}
 	}
+
+	// handle /decision/update body
 
 	// Return the valid request
 	return &requestBody, nil
@@ -117,11 +114,44 @@ func GetDecision(c *gin.Context) {
 }
 
 func UpdateDecision(c *gin.Context) {
-	// Your logic for updating a decision
-	c.JSON(http.StatusOK, gin.H{"message": "Decision updated"})
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
+	updatedDecision, updatedDecisionStatus, err := UpdateDecisionService(&clerkUser, validatedRequestBody)
+	if err != nil {
+		c.JSON(updatedDecisionStatus, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": updatedDecision})
 }
 
-// func DeleteDecision(c *gin.Context) {
-// 	// Your logic for deleting a decision
-// 	c.JSON(http.StatusOK, gin.H{"message": "Decision deleted"})
-// }
+func DeleteDecision(c *gin.Context) {
+	// Authenticate
+	clerkUser, authenticatedErr := auth.AuthenticateClerkUser(c)
+	if authenticatedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": authenticatedErr.Error()})
+		return
+	}
+	// Validate Request Body
+	validatedRequestBody, validatedRequestErr := ValidateRequest(c)
+	if validatedRequestErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validatedRequestErr.Error()})
+		return
+	}
+	status, err := DeleteDecisionService(&clerkUser, validatedRequestBody)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+	// Success
+	c.JSON(status, gin.H{"message": "decision deleted"})
+}

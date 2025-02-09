@@ -102,13 +102,22 @@ func GetUserService(
 	if authErr != nil {
 		return user, authStatus, authErr
 	}
+
 	// Fetch user from DB
 	dbUser, httpStatus, dbErr := GetUserById(&clerkUser.Id)
 	if dbErr != nil && httpStatus != http.StatusNotFound {
 		return user, httpStatus, fmt.Errorf("failed to fetch authenticated user from DB - %v", dbErr)
 	}
+
 	return dbUser, http.StatusOK, dbErr
 }
+
+// func GetUserPermissions(
+// 	clerkUser *models.ClerkUser,
+// 	requestBody *models.User,
+// ) (models.User, int, error) {
+
+// }
 
 func DeleteUserService(
 	clerkUser *models.ClerkUser,

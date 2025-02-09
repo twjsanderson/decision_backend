@@ -61,10 +61,9 @@ func SetupDB() error {
 			TableName:  "Decisions",
 			PrimaryKey: "id",
 			Columns: map[string]string{
-				"id":          "TEXT PRIMARY KEY",
-				"user_id":     "TEXT REFERENCES Users(id)", // Add foreign key reference here
-				"title":       "TEXT",
-				"choice_type": "TEXT",
+				"id":      "TEXT PRIMARY KEY",
+				"user_id": "TEXT REFERENCES Users(id)", // Add foreign key reference here
+				"title":   "TEXT",
 			},
 		},
 	}

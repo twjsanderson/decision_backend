@@ -31,10 +31,10 @@ func SetupRouter() *gin.Engine {
 	decisionRoutes := router.Group("/decision")
 	{
 		decisionRoutes.POST("/create", decision.CreateDecision)
-		decisionRoutes.POST("/complete", decision.CompleteDecision)
 		decisionRoutes.GET("/get", decision.GetDecision)
 		decisionRoutes.PUT("/update", decision.UpdateDecision)
-		// decisionRoutes.DELETE("/delete", handlers.DeleteDecision)
+		decisionRoutes.DELETE("/delete", decision.DeleteDecision)
+		decisionRoutes.POST("/complete", decision.CompleteDecision)
 	}
 
 	// Payment routes

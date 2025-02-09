@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type ClerkUser struct {
 	Id        string  `json:"id"`
 	Email     string  `json:"email"`
@@ -19,7 +21,9 @@ type UserHttp struct {
 }
 
 type UserPermissions struct {
-	Id     int    `json:"id"`
-	UserId string `json:"userId"`
-	Max    int    `json:"max"`
+	Id          int       `json:"id"`
+	UserId      string    `json:"userId"`
+	Max         int       `json:"max"`
+	Package     string    `json:"package"`
+	LastChecked time.Time `json:"lastChecked"`
 }
