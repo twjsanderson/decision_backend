@@ -11,22 +11,31 @@ import (
 )
 
 func InsertDecision(decision *models.Decision) (int, int, error) {
+	ctx := context.Background()
+	var insertedDecisionID int
+
 	query := `
 		INSERT INTO decisions (user_id, title, problem) 
 		VALUES ($1, $2, $3)
 		RETURNING id` // Return the primary key (decision ID)
 
-	var insertedDecisionID int
-	err := db.DB.QueryRow(context.Background(), query,
+	err := db.DB.QueryRow(ctx, query,
 		decision.Id, // This is the user_id (foreign key), inherited from ClerkUser
 		decision.Title,
 		decision.Problem,
 	).Scan(&insertedDecisionID)
 
-	//.. add more isnertions
-
 	if err != nil {
 		return -1, http.StatusInternalServerError, fmt.Errorf("failed to insert decision: %v", err)
+	}
+
+	tables := []string{"pareto_analysis", "swot_analysis", "bayesian_decision", "decision_tree", "analytic_hierarchy_process", "first_principles", "fuzzy_logic", "cost_benefit_analysis"}
+	for _, table := range tables {
+		_, err := db.DB.Exec(ctx, fmt.Sprintf(`INSERT INTO %s (decision_id) VALUES ($1)`, table), insertedDecisionID)
+		if err != nil {
+			return -1, http.StatusInternalServerError, fmt.Errorf("failed to insert into %s: %w", table, err)
+		}
+		fmt.Printf("Inserted empty row into %s with decision_id %d", table, insertedDecisionID)
 	}
 
 	// Success
@@ -197,9 +206,10 @@ func GetDecisionById(id int) (models.Decision, int, error) {
 
 	firstPrinciplesQuery := `
 		SELECT  
-			criteria,
-			alternatives
-		FROM analytic_hierarchy_process 
+			assumptions,
+			fundamental_facts,
+			reconstructed_solution
+		FROM first_principles 
 		WHERE decision_id = $1`
 
 	firstPrinciplesErr := db.DB.QueryRow(context.Background(), firstPrinciplesQuery, id).Scan(
@@ -244,9 +254,11 @@ func GetDecisionById(id int) (models.Decision, int, error) {
 
 	costBenefitQuery := `
 		SELECT  
-			fuzzy_variables,
-			decision_threshold
-		FROM fuzzy_logic 
+			costs,
+			benefits,
+			discount_rate,
+			time_horizon
+		FROM cost_benefit_analysis 
 		WHERE decision_id = $1
 	`
 
@@ -273,16 +285,46 @@ func GetDecisionById(id int) (models.Decision, int, error) {
 }
 
 func DeleteDecisionById(id int) (int, error) {
-	query := `
-		DELETE FROM decisions
-		WHERE id = $1
-	`
-	_, err := db.DB.Exec(context.Background(), query, id)
+	tx, err := db.DB.Begin(context.Background())
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to fetch decision: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to start transaction: %v", err)
+	}
+	defer tx.Rollback(context.Background()) // Rollback on failure
+
+	tables := []string{
+		"pareto_analysis",
+		"swot_analysis",
+		"bayesian_decision",
+		"decision_tree",
+		"analytic_hierarchy_process",
+		"first_principles",
+		"fuzzy_logic",
+		"cost_benefit_analysis",
 	}
 
-	return http.StatusFound, nil
+	// Delete from each related table
+	for _, table := range tables {
+		query := fmt.Sprintf("DELETE FROM %s WHERE decision_id = $1", table)
+		_, err := tx.Exec(context.Background(), query, id)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to delete from %s: %v", table, err)
+		}
+	}
+
+	// Selete the decision from the 'decisions' table
+	query := `DELETE FROM decisions WHERE id = $1`
+	_, err = tx.Exec(context.Background(), query, id)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to delete decision: %v", err)
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	//  Success
+	return http.StatusOK, nil
 }
 
 func UpdateExistingDecision(decision *models.Decision) (int, int, error) {
@@ -306,9 +348,9 @@ func UpdateExistingDecision(decision *models.Decision) (int, int, error) {
 			return decisionID, http.StatusInternalServerError, fmt.Errorf("failed to update pareto_analysis: %v", err)
 		}
 	}
-
 	// Update SWOT Analysis
 	if decision.SwotAnalysis != nil {
+		fmt.Println("UPDATE: ", decision.SwotAnalysis.Strengths)
 		query := `
 			UPDATE swot_analysis
 			SET strengths = $1, weaknesses = $2, opportunities = $3, threats = $4

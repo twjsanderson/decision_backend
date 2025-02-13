@@ -85,6 +85,7 @@ func CreateDecisionService(
 	}
 	return onlyDecision, http.StatusInternalServerError, fmt.Errorf("an error occured while trying to create new decision for %v", requestBody.Id)
 }
+
 func CompleteDecisionService(
 	clerkUser *models.ClerkUser,
 	requestBody *models.Decision,
